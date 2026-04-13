@@ -38,6 +38,13 @@ export class HardwareDevice {
   @Column({ name: 'api_key', unique: true, length: 64 })
   apiKey: string;
 
+  /**
+   * Device serial number (SN) from the WebSocket `reg` handshake.
+   * Null until the device connects for the first time.
+   */
+  @Column({ name: 'serial_number', type: 'varchar', length: 64, nullable: true, unique: true })
+  serialNumber: string | null;
+
   @Column({ name: 'last_seen_at', type: 'datetime', nullable: true })
   lastSeenAt: Date | null;
 

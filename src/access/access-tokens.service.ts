@@ -1,8 +1,12 @@
 import {
   BadRequestException,
+  forwardRef,
   ForbiddenException,
+  Inject,
   Injectable,
+  Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,14 +25,20 @@ import {
   AccessLogAction,
   CredentialType,
 } from './entities/access-log.entity';
+import { DeviceSocketService } from '../hardware/device-socket.service';
 
 @Injectable()
 export class AccessTokensService {
+  private readonly logger = new Logger(AccessTokensService.name);
+
   constructor(
     @InjectRepository(AccessToken)
     private readonly tokenRepo: Repository<AccessToken>,
     @InjectRepository(AccessLog)
     private readonly logRepo: Repository<AccessLog>,
+    @Optional()
+    @Inject(forwardRef(() => DeviceSocketService))
+    private readonly deviceSocketService: DeviceSocketService | null,
   ) {}
 
   digestToken(plain: string): string {
@@ -55,14 +65,18 @@ export class AccessTokensService {
     if (jwt.role !== UserRole.RESIDENT || !jwt.communityId) {
       throw new ForbiddenException('Only residents with a community can create tokens');
     }
-    if (dto.methods.password && !dto.keypadPassword) {
-      throw new BadRequestException('keypadPassword required when password method is enabled');
-    }
     const { plain, digest } = await this.generateUniquePlainToken();
+
+    // When password mode is enabled the 6-digit code IS the device PIN.
+    // We also support an optional separate keypadPassword (legacy/REST validation).
     let keypadPasswordHash: string | null = null;
     if (dto.keypadPassword) {
       keypadPasswordHash = await bcrypt.hash(dto.keypadPassword, 10);
     }
+
+    // Store the numeric representation for physical device sync (backupnum=11)
+    const devicePasswordValue = dto.methods.password ? parseInt(plain, 10) : null;
+
     const row = this.tokenRepo.create({
       residentId: jwt.sub,
       communityId: jwt.communityId,
@@ -74,8 +88,24 @@ export class AccessTokensService {
       validTo: dto.validTo ? new Date(dto.validTo) : null,
       status: AccessTokenStatus.ACTIVE,
       keypadPasswordHash,
+      devicePasswordValue,
     });
     const saved = await this.tokenRepo.save(row);
+
+    // Push the PIN to all community devices (fire-and-forget; offline devices are queued)
+    if (dto.methods.password && devicePasswordValue !== null && this.deviceSocketService) {
+      this.deviceSocketService
+        .syncTokenToAllCommunityDevices(
+          jwt.communityId,
+          saved.id,
+          saved.guestName,
+          devicePasswordValue,
+        )
+        .catch((err: Error) =>
+          this.logger.error(`Device sync failed for token ${saved.id}: ${err.message}`),
+        );
+    }
+
     return {
       token: plain,
       tokenId: saved.id,
@@ -83,7 +113,9 @@ export class AccessTokensService {
       methods: saved.methods,
       guestName: saved.guestName,
       type: saved.type,
-      warning: 'Store the token securely; it cannot be retrieved again.',
+      hint: dto.methods.password
+        ? 'This 6-digit code is the keypad PIN for the access panel.'
+        : 'Store the token securely; it cannot be retrieved again.',
     };
   }
 
@@ -175,6 +207,16 @@ export class AccessTokensService {
     if (t.residentId !== jwt.sub) throw new ForbiddenException();
     t.status = AccessTokenStatus.REVOKED;
     await this.tokenRepo.save(t);
+
+    // Remove from all community devices
+    if (t.methods.password && this.deviceSocketService) {
+      this.deviceSocketService
+        .removeTokenFromAllCommunityDevices(t.communityId, t.id)
+        .catch((err: Error) =>
+          this.logger.error(`Device remove failed for token ${t.id}: ${err.message}`),
+        );
+    }
+
     return { id: t.id, status: t.status };
   }
 
@@ -182,6 +224,13 @@ export class AccessTokensService {
     return this.tokenRepo.findOne({
       where: { tokenDigest: digest },
       relations: ['resident', 'community'],
+    });
+  }
+
+  async findByTokenId(id: string): Promise<AccessToken | null> {
+    return this.tokenRepo.findOne({
+      where: { id },
+      relations: ['resident'],
     });
   }
 

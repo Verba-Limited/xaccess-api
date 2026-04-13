@@ -23,6 +23,7 @@ export class HardwareDevicesService {
       name: dto.name,
       type: dto.type,
       apiKey,
+      serialNumber: dto.serialNumber ?? null,
       isActive: true,
       lastSeenAt: new Date(),
     });
@@ -32,6 +33,7 @@ export class HardwareDevicesService {
       name: saved.name,
       type: saved.type,
       apiKey: saved.apiKey,
+      serialNumber: saved.serialNumber,
       message: 'Store apiKey on the device securely; rotate if compromised.',
     };
   }
@@ -40,15 +42,27 @@ export class HardwareDevicesService {
     return this.repo.find({
       where: { communityId },
       order: { name: 'ASC' },
-      select: ['id', 'name', 'type', 'isActive', 'lastSeenAt', 'createdAt'],
+      select: ['id', 'name', 'type', 'isActive', 'lastSeenAt', 'serialNumber', 'createdAt'],
     });
+  }
+
+  listByCommunityWithSn(communityId: string): Promise<HardwareDevice[]> {
+    return this.repo.find({ where: { communityId, isActive: true } });
   }
 
   findByApiKey(apiKey: string): Promise<HardwareDevice | null> {
     return this.repo.findOne({ where: { apiKey, isActive: true } });
   }
 
+  findBySerialNumber(serialNumber: string): Promise<HardwareDevice | null> {
+    return this.repo.findOne({ where: { serialNumber, isActive: true } });
+  }
+
   async touch(deviceId: string): Promise<void> {
     await this.repo.update(deviceId, { lastSeenAt: new Date() });
+  }
+
+  async updateSerialNumber(deviceId: string, serialNumber: string): Promise<void> {
+    await this.repo.update(deviceId, { serialNumber });
   }
 }

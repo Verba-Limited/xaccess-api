@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { HardwareDevicesService } from './hardware-devices.service';
 import { HardwareValidationService } from './hardware-validation.service';
+import { DeviceSocketService } from './device-socket.service';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 import { ValidateCredentialDto } from './dto/validate-credential.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -9,13 +10,13 @@ import { JwtPayload } from '../auth/jwt.strategy';
 import { UserRole } from '../users/entities/user.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { ForbiddenException } from '@nestjs/common';
 
 @Controller({ path: 'hardware', version: '1' })
 export class HardwareController {
   constructor(
     private readonly devices: HardwareDevicesService,
     private readonly validation: HardwareValidationService,
+    private readonly deviceSocket: DeviceSocketService,
   ) {}
 
   @Post('devices')
@@ -34,9 +35,22 @@ export class HardwareController {
   @Get('devices')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.COMMUNITY_ADMIN)
-  listDevices(@CurrentUser() jwt: JwtPayload) {
+  async listDevices(@CurrentUser() jwt: JwtPayload) {
     if (!jwt.communityId) return [];
-    return this.devices.listByCommunity(jwt.communityId);
+    const rows = await this.devices.listByCommunity(jwt.communityId);
+    return rows.map((d) => ({
+      ...d,
+      isConnected: d.serialNumber
+        ? this.deviceSocket.isDeviceConnected(d.serialNumber)
+        : false,
+    }));
+  }
+
+  @Get('devices/connected')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.COMMUNITY_ADMIN)
+  getConnectedDevices() {
+    return { connectedSerialNumbers: this.deviceSocket.getConnectedSerialNumbers() };
   }
 
   /** Real-time validation from physical hardware (no user JWT) */

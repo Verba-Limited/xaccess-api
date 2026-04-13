@@ -73,6 +73,15 @@ export class AccessToken {
   @Column({ name: 'keypad_password_hash', type: 'varchar', length: 255, nullable: true })
   keypadPasswordHash: string | null;
 
+  /**
+   * The plain numeric PIN value (parseInt of the 6-digit code) used to sync
+   * the password to physical devices via the WebSocket SDK protocol.
+   * Stored as uint because the device accepts only numeric passwords and we
+   * need to re-push it when the device reconnects after offline periods.
+   */
+  @Column({ name: 'device_password_value', type: 'integer', nullable: true })
+  devicePasswordValue: number | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

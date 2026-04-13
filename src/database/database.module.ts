@@ -10,6 +10,7 @@ import { AccessToken } from '../access/entities/access-token.entity';
 import { AccessLog } from '../access/entities/access-log.entity';
 import { RfidCard } from '../access/entities/rfid-card.entity';
 import { HardwareDevice } from '../hardware/entities/hardware-device.entity';
+import { DeviceUser } from '../hardware/entities/device-user.entity';
 import { EmergencyContact } from '../emergency/entities/emergency-contact.entity';
 import { Message } from '../messaging/entities/message.entity';
 import { Invoice } from '../billing/entities/invoice.entity';
@@ -31,6 +32,7 @@ import { SeedService } from './seed.service';
           AccessLog,
           RfidCard,
           HardwareDevice,
+          DeviceUser,
           EmergencyContact,
           Message,
           Invoice,
