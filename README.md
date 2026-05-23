@@ -76,6 +76,14 @@ That text is Express’s **404** (no route registered). Common causes:
 
 This repo includes `render.yaml` (Blueprint) for a **Web Service + PostgreSQL** on the free tier.
 
+> **If Render says `render.yaml not found on main branch`:** the file exists locally but was not pushed to GitHub. Run either:
+> ```bash
+> GITHUB_TOKEN=ghp_xxxx ./scripts/upload-render-blueprint.sh   # uploads render.yaml only
+> # or push all commits:
+> GITHUB_TOKEN=ghp_xxxx ./scripts/push-main.sh
+> ```
+> Create a token at [github.com/settings/tokens](https://github.com/settings/tokens) with **repo** scope and write access to `Verba-Limited/xaccess-api`.
+
 1. Push this repo to GitHub (`Verba-Limited/xaccess-api`).
 2. [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint** → connect the repo.
 3. Render creates `xaccess-api` (web) and `xaccess-db` (Postgres), sets `DATABASE_URL` and generates `JWT_SECRET`.
