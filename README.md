@@ -100,6 +100,8 @@ curl -s -X POST "$BASE/auth/login" \
   -d '{"email":"superadmin@xaccess.local","password":"SuperAdmin123!"}'
 ```
 
+**Build failed with `nest: not found`:** Render sets `NODE_ENV=production`, so `npm ci` skips devDependencies. The blueprint uses `npm ci --include=dev && npm run build` to install `@nestjs/cli` for the build step.
+
 **Vercel admin:** set `VITE_API_URL=https://YOUR-SERVICE.onrender.com/api/v1` and redeploy.
 
 Health probe: `GET /api/v1/health` (checks DB connectivity).
