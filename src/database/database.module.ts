@@ -16,6 +16,9 @@ import { Message } from '../messaging/entities/message.entity';
 import { Invoice } from '../billing/entities/invoice.entity';
 import { UtilityUsage } from '../utilities/entities/utility-usage.entity';
 import { UtilityPreference } from '../utilities/entities/utility-preference.entity';
+import { CommunityUtilityConfig } from '../utilities/entities/community-utility-config.entity';
+import { ResidentUtilityCycle } from '../utilities/entities/resident-utility-cycle.entity';
+import { UtilityPaystackPayment } from '../utilities/entities/utility-paystack-payment.entity';
 import { Incident } from '../incidents/entities/incident.entity';
 import { SeedService } from './seed.service';
 
@@ -38,6 +41,9 @@ import { SeedService } from './seed.service';
           Invoice,
           UtilityUsage,
           UtilityPreference,
+          CommunityUtilityConfig,
+          ResidentUtilityCycle,
+          UtilityPaystackPayment,
           Incident,
         ];
 
@@ -75,6 +81,9 @@ import { SeedService } from './seed.service';
       EmergencyContact,
       Invoice,
       UtilityUsage,
+      CommunityUtilityConfig,
+      ResidentUtilityCycle,
+      UtilityPaystackPayment,
     ]),
   ],
   providers: [SeedService],

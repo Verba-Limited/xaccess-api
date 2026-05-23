@@ -25,9 +25,10 @@ async function bootstrap() {
   });
   app.enableCors({ origin: true, credentials: true });
 
-  const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(`Xaccess API listening on http://localhost:${port}/api/v1`);
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? '0.0.0.0';
+  await app.listen(port, host);
+  console.log(`Xaccess API listening on http://${host}:${port}/api/v1`);
 }
 
 bootstrap();

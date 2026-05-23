@@ -9,7 +9,7 @@ services:
     region: oregon
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start:prod
-    healthCheckPath: /api/v1/public/communities
+    healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
       - key: NODE_ENV

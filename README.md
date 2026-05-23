@@ -72,6 +72,30 @@ That text is Express’s **404** (no route registered). Common causes:
 3. **Quick check** (no auth): `GET /api/v1/admin/analytics/summary` should return **401** if the route exists; **404** means the running server is not this codebase’s latest build.
 4. **Force a fresh compile** before watch mode: `npm run start:dev:build` (runs `npm run build` then `nest start --watch`). On startup you should see **`CommunityAdminsController {/api/admin/community-admins}`** and **`Mapped {/api/admin/community-admins, POST}`**.
 
+## Deploy to Render
+
+This repo includes `render.yaml` (Blueprint) for a **Web Service + PostgreSQL** on the free tier.
+
+1. Push this repo to GitHub (`Verba-Limited/xaccess-api`).
+2. [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint** → connect the repo.
+3. Render creates `xaccess-api` (web) and `xaccess-db` (Postgres), sets `DATABASE_URL` and generates `JWT_SECRET`.
+4. After deploy, copy the service URL (e.g. `https://xaccess-api.onrender.com`).
+
+**Verify:**
+
+```bash
+BASE="https://YOUR-SERVICE.onrender.com/api/v1"
+curl -s "$BASE/health"
+curl -s "$BASE/public/communities"
+curl -s -X POST "$BASE/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@xaccess.local","password":"SuperAdmin123!"}'
+```
+
+**Vercel admin:** set `VITE_API_URL=https://YOUR-SERVICE.onrender.com/api/v1` and redeploy.
+
+Health probe: `GET /api/v1/health` (checks DB connectivity).
+
 ## Production notes
 
 - Set strong `JWT_SECRET` and `JWT_EXPIRES_IN`.

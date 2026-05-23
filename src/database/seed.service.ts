@@ -7,6 +7,9 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { EmergencyContact } from '../emergency/entities/emergency-contact.entity';
 import { Invoice } from '../billing/entities/invoice.entity';
 import { UtilityUsage } from '../utilities/entities/utility-usage.entity';
+import { CommunityUtilityConfig } from '../utilities/entities/community-utility-config.entity';
+import { ResidentUtilityCycle } from '../utilities/entities/resident-utility-cycle.entity';
+import { computePeriodWindow } from '../utilities/utility-period.util';
 
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -23,6 +26,10 @@ export class SeedService implements OnModuleInit {
     private readonly invoices: Repository<Invoice>,
     @InjectRepository(UtilityUsage)
     private readonly utilityUsage: Repository<UtilityUsage>,
+    @InjectRepository(CommunityUtilityConfig)
+    private readonly utilityConfig: Repository<CommunityUtilityConfig>,
+    @InjectRepository(ResidentUtilityCycle)
+    private readonly utilityCycles: Repository<ResidentUtilityCycle>,
   ) {}
 
   async onModuleInit() {
@@ -107,7 +114,14 @@ export class SeedService implements OnModuleInit {
       }),
     );
 
-    const months = ['2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'];
+    const months: string[] = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      months.push(`${y}-${m}`);
+    }
     let p = 70;
     let w = 50;
     for (const ym of months) {
@@ -123,6 +137,34 @@ export class SeedService implements OnModuleInit {
       p = Math.min(95, p + (Math.random() % 2 === 0 ? 3 : -2));
       w = Math.min(90, w + (Math.random() % 2 === 0 ? 4 : -3));
     }
+
+    await this.utilityConfig.save(
+      this.utilityConfig.create({
+        communityId: community.id,
+        measurementPeriod: 'MONTH',
+        serviceChargeMinor: 500000,
+        includedPowerKwh: 120,
+        includedWaterM3: 35,
+        currency: 'NGN',
+        isActive: true,
+      }),
+    );
+
+    const win = computePeriodWindow('MONTH');
+    await this.utilityCycles.save(
+      this.utilityCycles.create({
+        userId: resident.id,
+        communityId: community.id,
+        periodKey: win.periodKey,
+        periodStartsAt: win.periodStartsAt,
+        periodEndsAt: win.periodEndsAt,
+        quotaPowerKwh: 120,
+        quotaWaterM3: 35,
+        usedPowerKwh: 8,
+        usedWaterM3: 2.5,
+        paidAt: new Date(),
+      }),
+    );
 
     this.logger.log(
       'Seeded demo users: superadmin@xaccess.local / SuperAdmin123! | estate.admin@xaccess.local / EstateAdmin123! | resident@xaccess.local / Resident123!',
