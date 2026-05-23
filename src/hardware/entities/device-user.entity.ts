@@ -52,7 +52,7 @@ export class DeviceUser {
   guestName: string | null;
 
   /** Null = not yet synced to device; set when setuserinfo was acknowledged */
-  @Column({ name: 'synced_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'synced_at', nullable: true })
   syncedAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
