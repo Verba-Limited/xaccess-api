@@ -39,7 +39,7 @@ interface SendlogRecord {
 @Injectable()
 export class DeviceSocketService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DeviceSocketService.name);
-  private wss: WebSocket.Server;
+  private wss?: WebSocket.Server;
 
   /** SN → active WebSocket session */
   private deviceSessions = new Map<string, DeviceSession>();
@@ -53,13 +53,20 @@ export class DeviceSocketService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    this.wss = new WebSocket.Server({ port: 7788 });
+    if (process.env.DISABLE_DEVICE_WS === 'true') {
+      this.logger.warn(
+        'Device WebSocket server disabled (DISABLE_DEVICE_WS=true)',
+      );
+      return;
+    }
+    const port = Number(process.env.DEVICE_WS_PORT ?? 7788);
+    this.wss = new WebSocket.Server({ port });
     this.wss.on('connection', (ws: WebSocket) => this.handleConnection(ws));
-    this.logger.log('Device WebSocket server listening on port 7788');
+    this.logger.log(`Device WebSocket server listening on port ${port}`);
   }
 
   onModuleDestroy() {
-    this.wss.close();
+    this.wss?.close();
   }
 
   // ---------------------------------------------------------------------------
