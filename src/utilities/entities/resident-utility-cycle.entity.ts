@@ -39,10 +39,10 @@ export class ResidentUtilityCycle {
   @Column({ name: 'period_key', type: 'varchar', length: 16 })
   periodKey: string;
 
-  @Column({ name: 'period_starts_at', type: 'datetime' })
+  @Column({ name: 'period_starts_at', type: 'timestamp' })
   periodStartsAt: Date;
 
-  @Column({ name: 'period_ends_at', type: 'datetime' })
+  @Column({ name: 'period_ends_at', type: 'timestamp' })
   periodEndsAt: Date;
 
   @Column({ name: 'quota_power_kwh', type: 'float', default: 0 })
@@ -58,7 +58,7 @@ export class ResidentUtilityCycle {
   usedWaterM3: number;
 
   /** When the resident paid the service charge for this period (null = not entitled) */
-  @Column({ name: 'paid_at', type: 'datetime', nullable: true })
+  @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
   paidAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })

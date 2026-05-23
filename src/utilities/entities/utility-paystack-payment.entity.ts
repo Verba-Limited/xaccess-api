@@ -26,7 +26,7 @@ export class UtilityPaystackPayment {
   @Column({ type: 'varchar', length: 24, default: 'pending' })
   status: 'pending' | 'applied';
 
-  @Column({ name: 'applied_at', type: 'datetime', nullable: true })
+  @Column({ name: 'applied_at', type: 'timestamp', nullable: true })
   appliedAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })

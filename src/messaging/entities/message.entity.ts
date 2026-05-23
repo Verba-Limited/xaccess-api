@@ -42,7 +42,7 @@ export class Message {
   @Column({ type: 'text' })
   body: string;
 
-  @Column({ name: 'read_at', type: 'datetime', nullable: true })
+  @Column({ name: 'read_at', type: 'timestamp', nullable: true })
   readAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })

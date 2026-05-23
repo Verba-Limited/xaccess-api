@@ -45,7 +45,7 @@ export class HardwareDevice {
   @Column({ name: 'serial_number', type: 'varchar', length: 64, nullable: true, unique: true })
   serialNumber: string | null;
 
-  @Column({ name: 'last_seen_at', type: 'datetime', nullable: true })
+  @Column({ name: 'last_seen_at', type: 'timestamp', nullable: true })
   lastSeenAt: Date | null;
 
   @Column({ name: 'is_active', default: true })

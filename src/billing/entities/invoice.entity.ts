@@ -49,7 +49,7 @@ export class Invoice {
   @Column({ name: 'due_date', type: 'date' })
   dueDate: string;
 
-  @Column({ name: 'paid_at', type: 'datetime', nullable: true })
+  @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
   paidAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
