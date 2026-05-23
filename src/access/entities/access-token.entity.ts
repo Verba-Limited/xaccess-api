@@ -60,10 +60,10 @@ export class AccessToken {
   @Column({ name: 'guest_name', type: 'varchar', length: 255, nullable: true })
   guestName: string | null;
 
-  @Column({ name: 'valid_from', nullable: true })
+  @Column({ name: 'valid_from', type: 'timestamp', nullable: true })
   validFrom: Date | null;
 
-  @Column({ name: 'valid_to', nullable: true })
+  @Column({ name: 'valid_to', type: 'timestamp', nullable: true })
   validTo: Date | null;
 
   @Column({ type: 'varchar', length: 32, default: AccessTokenStatus.ACTIVE })
